@@ -6,7 +6,7 @@ const {
     deleteUsers } = require('../controllers/users')
 const { check } = require('express-validator')
 const { shieldValidator } = require('../middlewares/shieldValidator')
-const { roleValidator, isThereAnEmail } = require('../helpers/dbValidator')
+const { roleValidator, isThereAnEmail, isThereAnUserById } = require('../helpers/dbValidator')
 const User = require('../models/user')
 
 const router = Router()
@@ -20,7 +20,15 @@ router.post('/api', [
     check('role').custom(roleValidator),
     shieldValidator
 ], postUsers)
-router.put('/api/:id', putUsers)
-router.delete('/api', deleteUsers)
+router.put('/api/:id', [
+    check('id').custom(isThereAnUserById).isMongoId(),
+    check('role').custom(roleValidator),
+    shieldValidator
+], putUsers)
+router.delete('/api/:id', [
+    check('id').custom(isThereAnUserById).isMongoId(),
+    // check('role').custom(roleValidator),
+    shieldValidator
+], deleteUsers)
 
 module.exports = router

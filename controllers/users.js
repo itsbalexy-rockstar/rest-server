@@ -3,28 +3,28 @@ const res = require('express/lib/response')
 const User = require('../models/user')
 const bcryptjs = require('bcryptjs')
 
-const getUsers = (req, res = response) => {
+const getUsers = async(req, res = response) => {
 
-    const data = req.query
+    const { limit = 5, from = 0 } = req.query
+    
+    const query = { estado: true }
+    
+    const [ total, users ] = await Promise.all([
+        User.countDocuments(query),
+        User.find()
+            .skip(Number(from))    
+            .limit(Number(limit))
+    ])
      
     res.json({
-         name: 'GET',
-         message: 'Answer from GET',
-         data
-     });
+        total,
+        users
+    });
 }
 const postUsers = async(req, res) => {
 
-    const { name, email, password, role } = req.body
-    const user = new User({ name, email, password, role} )
-
-    //email
-    // const isThereAnEmail = await User.findOne({email})
-    // if (isThereAnEmail){
-    //     return res.status(400).json({
-    //         message: 'Email already exists'
-    //     })
-    // }
+    const { name, email, password, role, estado } = req.body
+    const user = new User({ name, email, password, role, estado} )
     
     //encrypt the password
     const salt = bcryptjs.genSaltSync()
@@ -38,21 +38,28 @@ const postUsers = async(req, res) => {
         user
     });
 }
-const putUsers = (req, res) => {
+const putUsers = async(req, res) => {
     
     const id = req.params.id
+    const { _id, password, email, google, ...others } = req.body
+
+    if (password){
+        const salt = bcryptjs.genSaltSync()
+        others.password = bcryptjs.hashSync(password, salt)
+    }
+
+    const user = await User.findByIdAndUpdate(id, others)
     
-    res.json({
-        name: 'PUT',
-        message: 'Answer from PUT',
-        id
-    });
+    res.json(user);
 }
-const deleteUsers = (req, res) => {
+const deleteUsers = async (req, res) => {
+    
+    const { id } = req.params
+
+    const user = await User.findByIdAndUpdate(id, {estado: false})
     
     res.json({
-        name: 'DELETE',
-        message: 'Answer from DELETE'
+        user
     });
 }
 

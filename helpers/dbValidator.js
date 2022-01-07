@@ -15,7 +15,15 @@ const isThereAnEmail = async(email = '') => {
      }
 }
 
+const isThereAnUserById = async(id = '') => {
+    const existsUserById = await User.findById(id)
+    if (!existsUserById){
+         throw new Error(`${id} is not registered in database`)
+     }
+}
+
 module.exports = {
     roleValidator,
-    isThereAnEmail
+    isThereAnEmail,
+    isThereAnUserById
 }
